@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>ProKick Box Cricket Turf | Book Your Game</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-outer: #050706;
+      --bg-app: #0e1210;
+      --bg-card: #161c18;
+      --bg-input: #0f1411;
+      --border: #26302a;
+      --border-strong: #34413a;
+      --lime: #b6f23a;
+      --lime-deep: #8fd11a;
+      --text: #f5f7f4;
+      --text-muted: #9aa69f;
+      --radius: 14px;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-outer);
+      color: var(--text);
+      font-family: "Segoe UI", "Helvetica Neue", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+      background:
+        radial-gradient(120% 40% at 50% 0%, rgba(182, 242, 58, 0.10) 0%, rgba(182, 242, 58, 0) 70%),
+        var(--bg-app);
+      box-shadow: 0 0 0 1px #1a211d, 0 0 60px rgba(0, 0, 0, 0.8);
+      overflow-x: hidden;
+    }
+
+    /* ---------- Brand header ---------- */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      position: relative;
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #d6ff6b 0%, var(--lime) 40%, var(--lime-deep) 100%);
+      box-shadow: 0 6px 18px rgba(182, 242, 58, 0.28);
+      overflow: hidden;
+    }
+
+    /* cricket-ball seam */
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      bottom: -6px;
+      width: 22px;
+      border: 2px dashed rgba(14, 18, 16, 0.75);
+      border-radius: 50%;
+    }
+
+    .brand-mark::before {
+      left: -15px;
+    }
+
+    .brand-mark::after {
+      right: -15px;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-text h1 span {
+      color: var(--lime);
+    }
+
+    .brand-text p {
+      margin: 5px 0 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      margin: 30px 0 22px;
+    }
+
+    .pitch-line {
+      height: 6px;
+      margin-bottom: 18px;
+      border-radius: 3px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--lime) 0 28px,
+        transparent 28px 36px
+      );
+      opacity: 0.85;
+    }
+
+    .hero h2 {
+      margin: 0 0 8px;
+      font-size: 38px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 36ch;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    /* ---------- Booking card ---------- */
+    .card {
+      padding: 22px 18px 20px;
+      background: linear-gradient(180deg, #1a211c 0%, var(--bg-card) 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .field + .field {
+      margin-top: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select {
+      display: block;
+      width: 100%;
+      height: 52px;
+      padding: 0 16px;
+      font: inherit;
+      font-size: 16px; /* prevents iOS zoom on focus */
+      color: var(--text);
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input::placeholder {
+      color: #66736b;
+    }
+
+    input[type="date"] {
+      color-scheme: dark;
+      min-width: 0;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(85%) sepia(60%) saturate(500%) hue-rotate(35deg);
+      cursor: pointer;
+    }
+
+    select {
+      padding-right: 44px;
+      color-scheme: dark;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--lime) 50%),
+        linear-gradient(135deg, var(--lime) 50%, transparent 50%);
+      background-position:
+        calc(100% - 22px) 22px,
+        calc(100% - 16px) 22px;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+
+    select option,
+    select optgroup {
+      background: #161c18;
+      color: var(--text);
+    }
+
+    select optgroup {
+      color: var(--lime);
+      font-style: normal;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 3px rgba(182, 242, 58, 0.22);
+    }
+
+    /* ---------- CTA ---------- */
+    .cta {
+      display: block;
+      width: 100%;
+      margin-top: 26px;
+      padding: 18px 16px;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      color: #0b1004;
+      background: linear-gradient(180deg, #c8ff4d 0%, var(--lime) 55%, var(--lime-deep) 100%);
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(182, 242, 58, 0.25);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cta:focus-visible {
+      outline: 3px solid #ffffff;
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) {
+      .cta:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.06);
+        box-shadow: 0 14px 30px rgba(182, 242, 58, 0.35);
+      }
+    }
+
+    .cta:active {
+      transform: translateY(0);
+    }
+
+    .note {
+      margin: 12px 0 0;
+      font-size: 13px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .app {
+        padding: 22px 14px 32px;
+      }
+      .hero h2 {
+        font-size: 32px;
+      }
+      .card {
+        padding: 18px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <header class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div class="brand-text">
+        <h1>Pro<span>Kick</span></h1>
+        <p>Box Cricket Turf</p>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="pitch-line" aria-hidden="true"></div>
+      <h2 id="hero-title">Book Your Game</h2>
+      <p>Your game. Your team. Your slot. Reserve your turf and get ready to play!</p>
+    </section>
+
+    <section class="card" aria-label="Booking form">
+      <form id="booking-form" action="#" method="get" novalidate>
+
+        <div class="field">
+          <label for="team">Team Name</label>
+          <input type="text" id="team" name="team" placeholder="Enter your team name" autocomplete="organization" required>
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" placeholder="Enter 10-digit mobile number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel-national" required>
+        </div>
+
+        <div class="field">
+          <label for="date">Booking Date</label>
+          <input type="date" id="date" name="date" required>
+        </div>
+
+        <div class="field">
+          <label for="slot">Time Slot</label>
+          <select id="slot" name="slot" required>
+            <option value="" selected>Select Time Slot</option>
+            <optgroup label="Morning">
+              <option value="06:00-07:00">06:00 AM - 07:00 AM</option>
+              <option value="07:00-08:00">07:00 AM - 08:00 AM</option>
+            </optgroup>
+            <optgroup label="Evening &amp; Night">
+              <option value="18:00-19:00">06:00 PM - 07:00 PM</option>
+              <option value="19:00-20:00">07:00 PM - 08:00 PM</option>
+              <option value="20:00-21:00">08:00 PM - 09:00 PM</option>
+              <option value="21:00-22:00">09:00 PM - 10:00 PM</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <button type="submit" class="cta" id="pay-btn">Pay ₹500 Advance &amp; Book Slot</button>
+        <p class="note">₹500 advance payment required to reserve your slot.</p>
+
+      </form>
+    </section>
+
+  </main>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      // Firebase (v8 compat) initialization
+      var firebaseConfig = {
+        apiKey: "AIzaSyDiGopFOIBanHJROTXL-0sIDAoIVwUSf_w",
+        authDomain: "football-manager-be26f.firebaseapp.com",
+        databaseURL: "https://football-manager-be26f-default-rtdb.firebaseio.com",
+        projectId: "football-manager-be26f",
+        storageBucket: "football-manager-be26f.firebasestorage.app",
+        messagingSenderId: "815291979801",
+        appId: "1:815291979801:web:3a9db5b3eaa32b4630f288",
+        measurementId: "G-RGD41F9JGL"
+      };
+
+      var db = null;
+      try {
+        if (typeof firebase !== "undefined") {
+          if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+          db = firebase.database();
+        } else {
+          console.error("Firebase SDK failed to load.");
+        }
+      } catch (fbErr) {
+        console.error("Firebase initialization error:", fbErr);
+      }
+
+      // Razorpay TEST Key ID only. Never put the Key Secret in frontend code.
+      var RAZORPAY_KEY_ID = "rzp_test_TyPqbXmV5yrlSJ";
+      var AMOUNT_PAISE = "50000"; // ₹500
+
+      var form = document.getElementById("booking-form");
+      var teamEl = document.getElementById("team");
+      var phoneEl = document.getElementById("phone");
+      var dateEl = document.getElementById("date");
+      var slotEl = document.getElementById("slot");
+      var payBtn = document.getElementById("pay-btn");
+      var checkoutOpen = false; // prevents duplicate checkout windows
+
+      // Block past dates in the date picker (local date, not UTC)
+      var now = new Date();
+      var today = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0");
+      dateEl.setAttribute("min", today);
+
+      // Keep only digits in the phone field
+      phoneEl.addEventListener("input", function () {
+        phoneEl.value = phoneEl.value.replace(/\D/g, "").slice(0, 10);
+      });
+
+      function setBusy(busy) {
+        checkoutOpen = busy;
+        payBtn.disabled = busy;
+        payBtn.style.opacity = busy ? "0.7" : "";
+        payBtn.style.cursor = busy ? "not-allowed" : "";
+      }
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        if (checkoutOpen) { return; }
+
+        var team = teamEl.value.trim();
+        var phone = phoneEl.value.trim();
+        var date = dateEl.value;
+        var slot = slotEl.value;
+
+        // Step 2: validation
+        if (!team || !phone || !date || !slot) {
+          alert("Please fill all fields");
+          return;
+        }
+        if (!/^[0-9]{10}$/.test(phone)) {
+          alert("Please enter a valid 10-digit mobile number.");
+          phoneEl.focus();
+          return;
+        }
+        if (date < today) {
+          alert("Please select today's date or a future date.");
+          dateEl.focus();
+          return;
+        }
+
+        // SDK loading failure (offline, blocked, etc.)
+        if (typeof window.Razorpay !== "function") {
+          alert("Payment service could not be loaded. Please check your internet connection and refresh the page.");
+          return;
+        }
+
+        var slotLabel = slotEl.options[slotEl.selectedIndex].text;
+
+        // Step 3: open Razorpay Checkout
+        var options = {
+          key: RAZORPAY_KEY_ID,
+          amount: AMOUNT_PAISE,
+          currency: "INR",
+          name: "ProKick Box Cricket Turf",
+          description: "₹500 Advance Turf Booking",
+          prefill: { contact: phone },
+          notes: { team: team, date: date, slot: slotLabel },
+          theme: { color: "#8fd11a" },
+
+          // Payment succeeded in the browser: save the booking to Firebase
+          handler: function (response) {
+            var paymentId = response.razorpay_payment_id;
+            console.log("Razorpay payment ID:", paymentId);
+
+            var booking = {
+              teamName: team,
+              phone: phone,
+              date: date,
+              timeSlot: slotLabel,
+              paymentId: paymentId,
+              amountPaid: 500,
+              currency: "INR",
+              createdAt: new Date().toISOString()
+            };
+
+            function saveFailed(err) {
+              setBusy(false);
+              console.error("Firebase save error:", err);
+              alert("Payment received (ID: " + paymentId + ") but your booking could not be saved. Please contact ProKick with this payment ID.");
+            }
+
+            if (!db) {
+              saveFailed(new Error("Firebase not available"));
+              return;
+            }
+
+            db.ref("bookings").push(booking)
+              .then(function () {
+                setBusy(false);
+                alert("Payment Successful & Slot Confirmed!");
+                form.reset();
+              })
+              .catch(saveFailed);
+          },
+
+          modal: {
+            // Step 5: user closed the popup without paying
+            ondismiss: function () {
+              setBusy(false);
+              alert("Payment cancelled. Your slot has not been booked.");
+            }
+          }
+        };
+
+        try {
+          setBusy(true);
+          var rzp = new window.Razorpay(options);
+
+          // Step 5: failed transaction
+          rzp.on("payment.failed", function (response) {
+            setBusy(false);
+            var reason = response && response.error && response.error.description
+              ? response.error.description
+              : "Please try again.";
+            alert("Payment failed. " + reason);
+          });
+
+          rzp.open();
+        } catch (err) {
+          setBusy(false);
+          console.error("Razorpay initialization error:", err);
+          alert("Unable to start payment. Please refresh the page and try again.");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
