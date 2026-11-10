@@ -228,6 +228,25 @@
     }
 
     /* ---------- CTA ---------- */
+    .slot-msg {
+      margin: 8px 0 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .slot-msg:empty {
+      display: none;
+    }
+
+    .slot-msg.is-error {
+      color: #ff6b6b;
+    }
+
+    .slot-msg.is-ok {
+      color: var(--lime);
+    }
+
     .cta {
       display: block;
       width: 100%;
@@ -340,6 +359,7 @@
               <option value="21:00-22:00">09:00 PM - 10:00 PM</option>
             </optgroup>
           </select>
+          <p class="slot-msg" id="slot-msg" role="status" aria-live="polite"></p>
         </div>
 
         <button type="submit" class="cta" id="pay-btn">Pay ₹500 Advance &amp; Book Slot</button>
@@ -405,17 +425,94 @@
         phoneEl.value = phoneEl.value.replace(/\D/g, "").slice(0, 10);
       });
 
+      var slotBlocked = false;   // slot already booked (or could not be verified)
+      var slotChecking = false;  // availability lookup in progress
+      var checkId = 0;           // ignores outdated lookups
+      var slotMsg = document.getElementById("slot-msg");
+
+      function refreshButton() {
+        var disabled = checkoutOpen || slotBlocked || slotChecking;
+        payBtn.disabled = disabled;
+        payBtn.style.opacity = disabled ? "0.6" : "";
+        payBtn.style.cursor = disabled ? "not-allowed" : "";
+      }
+
       function setBusy(busy) {
         checkoutOpen = busy;
-        payBtn.disabled = busy;
-        payBtn.style.opacity = busy ? "0.7" : "";
-        payBtn.style.cursor = busy ? "not-allowed" : "";
+        refreshButton();
       }
+
+      function showSlotMsg(text, type) {
+        slotMsg.textContent = text;
+        slotMsg.className = "slot-msg" + (type ? " is-" + type : "");
+      }
+
+      // Slot availability check: same Date AND same Time Slot in 'bookings'
+      function checkAvailability() {
+        var date = dateEl.value;
+        var slot = slotEl.value;
+        var thisCheck = ++checkId;
+
+        if (!date || !slot) {
+          slotBlocked = false;
+          slotChecking = false;
+          showSlotMsg("", "");
+          refreshButton();
+          return;
+        }
+
+        if (!db) {
+          slotBlocked = true;
+          slotChecking = false;
+          showSlotMsg("Could not check slot availability. Please refresh the page.", "error");
+          refreshButton();
+          return;
+        }
+
+        var slotLabel = slotEl.options[slotEl.selectedIndex].text;
+        slotChecking = true;
+        slotBlocked = false;
+        showSlotMsg("Checking availability...", "");
+        refreshButton();
+
+        db.ref("bookings").orderByChild("date").equalTo(date).once("value")
+          .then(function (snapshot) {
+            if (thisCheck !== checkId) { return; }
+            var taken = false;
+            snapshot.forEach(function (child) {
+              var b = child.val();
+              if (b && b.timeSlot === slotLabel) { taken = true; }
+            });
+            slotChecking = false;
+            slotBlocked = taken;
+            if (taken) {
+              showSlotMsg("Sorry, this slot is already booked. Please choose another slot or date.", "error");
+            } else {
+              showSlotMsg("Great, this slot is available!", "ok");
+            }
+            refreshButton();
+          })
+          .catch(function (err) {
+            if (thisCheck !== checkId) { return; }
+            console.error("Availability check error:", err);
+            slotChecking = false;
+            slotBlocked = true;
+            showSlotMsg("Could not check slot availability. Please try again.", "error");
+            refreshButton();
+          });
+      }
+
+      dateEl.addEventListener("change", checkAvailability);
+      slotEl.addEventListener("change", checkAvailability);
+      // After the form is reset (post-booking), clear the message and re-enable the button
+      form.addEventListener("reset", function () {
+        setTimeout(checkAvailability, 0);
+      });
 
       form.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        if (checkoutOpen) { return; }
+        if (checkoutOpen || slotBlocked || slotChecking) { return; }
 
         var team = teamEl.value.trim();
         var phone = phoneEl.value.trim();
