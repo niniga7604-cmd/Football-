@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>ProKick Admin | Bookings Dashboard</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-outer: #050706;
+      --bg-app: #0e1210;
+      --bg-card: #161c18;
+      --bg-input: #0f1411;
+      --border: #26302a;
+      --border-strong: #34413a;
+      --lime: #b6f23a;
+      --lime-deep: #8fd11a;
+      --text: #f5f7f4;
+      --text-muted: #9aa69f;
+      --danger: #ff6b6b;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-outer);
+      color: var(--text);
+      font-family: "Segoe UI", "Helvetica Neue", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 1100px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+      background:
+        radial-gradient(120% 30% at 50% 0%, rgba(182, 242, 58, 0.08) 0%, rgba(182, 242, 58, 0) 70%),
+        var(--bg-app);
+    }
+
+    /* ---------- Header ---------- */
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #d6ff6b 0%, var(--lime) 40%, var(--lime-deep) 100%);
+      box-shadow: 0 6px 18px rgba(182, 242, 58, 0.25);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.3px;
+    }
+
+    .brand h1 span {
+      color: var(--lime);
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #66736b;
+    }
+
+    .status.live {
+      color: var(--lime);
+    }
+
+    .status.live::before {
+      background: var(--lime);
+      box-shadow: 0 0 8px var(--lime);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.error::before {
+      background: var(--danger);
+    }
+
+    /* ---------- Stats ---------- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      background: linear-gradient(180deg, #1a211c 0%, var(--bg-card) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .stat .num {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--lime);
+    }
+
+    .stat .lbl {
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ---------- Toolbar ---------- */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar input,
+    .toolbar select {
+      height: 46px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      outline: none;
+      color-scheme: dark;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .toolbar input {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+
+    .toolbar select {
+      flex: 0 1 220px;
+    }
+
+    .toolbar input:focus,
+    .toolbar select:focus {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 3px rgba(182, 242, 58, 0.22);
+    }
+
+    /* ---------- Table ---------- */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-align: left;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: #121713;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: rgba(182, 242, 58, 0.04);
+    }
+
+    .date {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--lime);
+      background: rgba(182, 242, 58, 0.10);
+      border: 1px solid rgba(182, 242, 58, 0.25);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .upcoming {
+      margin-left: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #0b1004;
+      background: var(--lime);
+      padding: 2px 7px;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .phone a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .empty {
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* ---------- Mobile: rows become cards ---------- */
+    @media (max-width: 720px) {
+      .stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .stat {
+        padding: 12px;
+      }
+
+      .stat .num {
+        font-size: 22px;
+      }
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      table,
+      tbody,
+      tr,
+      td {
+        display: block;
+        width: 100%;
+      }
+
+      tbody tr {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      tbody tr:last-child {
+        border-bottom: 0;
+      }
+
+      tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 6px 0;
+        border: 0;
+        text-align: right;
+      }
+
+      tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="top">
+      <div class="brand">
+        <div class="dot" aria-hidden="true"></div>
+        <div>
+          <h1>Pro<span>Kick</span> Admin</h1>
+          <p>Bookings Dashboard</p>
+        </div>
+      </div>
+      <div class="status" id="status" role="status">Connecting...</div>
+    </header>
+
+    <section class="stats" aria-label="Summary">
+      <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total bookings</div></div>
+      <div class="stat"><div class="num" id="stat-upcoming">0</div><div class="lbl">Upcoming</div></div>
+      <div class="stat"><div class="num" id="stat-revenue">₹0</div><div class="lbl">Advance collected</div></div>
+    </section>
+
+    <section class="toolbar" aria-label="Filters">
+      <input type="search" id="search" placeholder="Search team, phone, date or payment ID" aria-label="Search bookings">
+      <select id="sort" aria-label="Sort bookings">
+        <option value="date-desc">Date: latest / upcoming first</option>
+        <option value="date-asc">Date: oldest first</option>
+        <option value="created-desc">Recently booked first</option>
+      </select>
+    </section>
+
+    <section class="table-card" aria-label="Bookings table">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Booking Date</th>
+            <th scope="col">Time Slot</th>
+            <th scope="col">Team Name</th>
+            <th scope="col">Phone Number</th>
+            <th scope="col">Payment ID</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>Loading bookings...</div>
+    </section>
+
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var firebaseConfig = {
+        apiKey: "AIzaSyDiGopFOIBanHJROTXL-0sIDAoIVwUSf_w",
+        authDomain: "football-manager-be26f.firebaseapp.com",
+        databaseURL: "https://football-manager-be26f-default-rtdb.firebaseio.com",
+        projectId: "football-manager-be26f",
+        storageBucket: "football-manager-be26f.firebasestorage.app",
+        messagingSenderId: "815291979801",
+        appId: "1:815291979801:web:3a9db5b3eaa32b4630f288",
+        measurementId: "G-RGD41F9JGL"
+      };
+
+      var statusEl = document.getElementById("status");
+      var rowsEl = document.getElementById("rows");
+      var emptyEl = document.getElementById("empty");
+      var searchEl = document.getElementById("search");
+      var sortEl = document.getElementById("sort");
+      var bookings = [];
+
+      function setStatus(text, cls) {
+        statusEl.textContent = text;
+        statusEl.className = "status" + (cls ? " " + cls : "");
+      }
+
+      function todayStr() {
+        var d = new Date();
+        return d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0");
+      }
+
+      // "06:00 PM - 07:00 PM" -> minutes since midnight of the start time
+      function slotStart(label) {
+        var m = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(label || "");
+        if (!m) { return 0; }
+        var h = parseInt(m[1], 10) % 12;
+        if (m[3].toUpperCase() === "PM") { h += 12; }
+        return h * 60 + parseInt(m[2], 10);
+      }
+
+      function formatDate(iso) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+        if (!m) { return iso || "-"; }
+        var d = new Date(+m[1], +m[2] - 1, +m[3]);
+        return d.toLocaleDateString("en-IN", {
+          weekday: "short", day: "2-digit", month: "short", year: "numeric"
+        });
+      }
+
+      function compare(a, b) {
+        var mode = sortEl.value;
+        if (mode === "created-desc") {
+          return String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
+        }
+        var byDate = String(a.date || "").localeCompare(String(b.date || ""));
+        if (mode === "date-asc") {
+          return byDate || slotStart(a.timeSlot) - slotStart(b.timeSlot);
+        }
+        // date-desc: newest date first, earlier slot first within the same day
+        return -byDate || slotStart(a.timeSlot) - slotStart(b.timeSlot);
+      }
+
+      function cell(label, node) {
+        var td = document.createElement("td");
+        td.setAttribute("data-label", label);
+        td.appendChild(node);
+        return td;
+      }
+
+      function text(str, cls) {
+        var span = document.createElement("span");
+        if (cls) { span.className = cls; }
+        span.textContent = str;
+        return span;
+      }
+
+      function render() {
+        var q = searchEl.value.trim().toLowerCase();
+        var today = todayStr();
+
+        var list = bookings.filter(function (b) {
+          if (!q) { return true; }
+          return [b.teamName, b.phone, b.date, b.timeSlot, b.paymentId]
+            .join(" ").toLowerCase().indexOf(q) !== -1;
+        }).sort(compare);
+
+        rowsEl.textContent = "";
+
+        list.forEach(function (b) {
+          var tr = document.createElement("tr");
+
+          var dateWrap = document.createElement("span");
+          dateWrap.appendChild(text(formatDate(b.date), "date"));
+          if (b.date >= today) { dateWrap.appendChild(text("Upcoming", "upcoming")); }
+
+          var phone = document.createElement("span");
+          phone.className = "phone";
+          if (b.phone) {
+            var a = document.createElement("a");
+            a.href = "tel:" + String(b.phone).replace(/[^0-9+]/g, "");
+            a.textContent = b.phone;
+            phone.appendChild(a);
+          } else {
+            phone.textContent = "-";
+          }
+
+          tr.appendChild(cell("Booking Date", dateWrap));
+          tr.appendChild(cell("Time Slot", text(b.timeSlot || "-", "tag")));
+          tr.appendChild(cell("Team Name", text(b.teamName || "-")));
+          tr.appendChild(cell("Phone Number", phone));
+          tr.appendChild(cell("Payment ID", text(b.paymentId || "-", "mono")));
+          rowsEl.appendChild(tr);
+        });
+
+        emptyEl.hidden = list.length > 0;
+        if (!list.length) {
+          emptyEl.textContent = bookings.length ? "No bookings match your search." : "No bookings yet.";
+        }
+
+        // Summary uses all bookings, not just the filtered ones
+        var upcoming = 0, revenue = 0;
+        bookings.forEach(function (b) {
+          if (b.date >= today) { upcoming++; }
+          revenue += Number(b.amountPaid) || 0;
+        });
+        document.getElementById("stat-total").textContent = bookings.length;
+        document.getElementById("stat-upcoming").textContent = upcoming;
+        document.getElementById("stat-revenue").textContent = "₹" + revenue.toLocaleString("en-IN");
+      }
+
+      searchEl.addEventListener("input", render);
+      sortEl.addEventListener("change", render);
+
+      // ---- Firebase: live read of the 'bookings' node ----
+      try {
+        if (typeof firebase === "undefined") { throw new Error("Firebase SDK failed to load"); }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        var db = firebase.database();
+
+        emptyEl.hidden = false;
+        db.ref("bookings").on("value", function (snapshot) {
+          bookings = [];
+          snapshot.forEach(function (child) {
+            var b = child.val() || {};
+            b.key = child.key;
+            bookings.push(b);
+          });
+          setStatus("Live", "live");
+          render();
+        }, function (err) {
+          console.error("Firebase read error:", err);
+          setStatus("Access denied / offline", "error");
+          emptyEl.hidden = false;
+          emptyEl.textContent = "Could not load bookings. Check your internet connection and Firebase database rules.";
+        });
+      } catch (err) {
+        console.error(err);
+        setStatus("Firebase error", "error");
+        emptyEl.hidden = false;
+        emptyEl.textContent = "Could not connect to Firebase. Please refresh the page.";
+      }
+    })();
+  </script>
+</body>
+</html>
