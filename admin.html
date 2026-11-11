@@ -280,6 +280,65 @@
       text-decoration: none;
     }
 
+    .cancel-btn {
+      padding: 7px 14px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.10);
+      border: 1px solid rgba(255, 107, 107, 0.35);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    @media (hover: hover) {
+      .cancel-btn:hover:not(:disabled) {
+        color: #fff;
+        background: #e04848;
+      }
+    }
+
+    .cancel-btn:focus-visible {
+      outline: 2px solid var(--danger);
+      outline-offset: 2px;
+    }
+
+    .cancel-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 10;
+      max-width: calc(100% - 32px);
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b1004;
+      background: var(--lime);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .toast.error {
+      color: #fff;
+      background: #e04848;
+    }
+
     .empty {
       padding: 40px 16px;
       text-align: center;
@@ -386,6 +445,7 @@
             <th scope="col">Team Name</th>
             <th scope="col">Phone Number</th>
             <th scope="col">Payment ID</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -394,6 +454,8 @@
     </section>
 
   </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -418,6 +480,16 @@
       var searchEl = document.getElementById("search");
       var sortEl = document.getElementById("sort");
       var bookings = [];
+      var deleting = {}; // Firebase keys whose deletion is in progress
+      var toastEl = document.getElementById("toast");
+      var toastTimer = null;
+
+      function showToast(message, isError) {
+        toastEl.textContent = message;
+        toastEl.className = "toast show" + (isError ? " error" : "");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.className = "toast"; }, 3500);
+      }
 
       function setStatus(text, cls) {
         statusEl.textContent = text;
@@ -511,6 +583,15 @@
           tr.appendChild(cell("Team Name", text(b.teamName || "-")));
           tr.appendChild(cell("Phone Number", phone));
           tr.appendChild(cell("Payment ID", text(b.paymentId || "-", "mono")));
+
+          var cancelBtn = document.createElement("button");
+          cancelBtn.type = "button";
+          cancelBtn.className = "cancel-btn";
+          cancelBtn.textContent = deleting[b.key] ? "Cancelling..." : "Cancel";
+          cancelBtn.disabled = !!deleting[b.key];
+          cancelBtn.setAttribute("data-key", b.key || "");
+          cancelBtn.setAttribute("aria-label", "Cancel booking for " + (b.teamName || "team"));
+          tr.appendChild(cell("Action", cancelBtn));
           rowsEl.appendChild(tr);
         });
 
@@ -529,6 +610,58 @@
         document.getElementById("stat-upcoming").textContent = upcoming;
         document.getElementById("stat-revenue").textContent = "₹" + revenue.toLocaleString("en-IN");
       }
+
+      // Cancel booking: one delegated listener, uses the exact Firebase push key
+      rowsEl.addEventListener("click", function (event) {
+        var btn = event.target.closest ? event.target.closest(".cancel-btn") : null;
+        if (!btn || btn.disabled) { return; }
+
+        var key = btn.getAttribute("data-key");
+        if (!key) {
+          console.error("Cancel aborted: booking key is missing.");
+          showToast("Failed to cancel booking. Please try again.", true);
+          return;
+        }
+        if (deleting[key]) { return; }
+
+        if (!confirm("Are you sure you want to cancel this booking? This will remove it from the database and free up the slot.")) {
+          return;
+        }
+
+        if (typeof db === "undefined" || !db) {
+          console.error("Cancel aborted: Firebase is not available.");
+          showToast("Failed to cancel booking. Please try again.", true);
+          return;
+        }
+
+        deleting[key] = true;
+        btn.disabled = true;
+        btn.textContent = "Cancelling...";
+
+        var ref = db.ref("bookings/" + key);
+        ref.once("value")
+          .then(function (snap) {
+            if (!snap.exists()) {
+              return { alreadyGone: true };
+            }
+            return ref.remove().then(function () { return { alreadyGone: false }; });
+          })
+          .then(function (result) {
+            delete deleting[key];
+            if (result.alreadyGone) {
+              showToast("This booking was already removed.", false);
+            } else {
+              showToast("Booking cancelled successfully.", false);
+            }
+            // The live 'value' listener re-renders the table and the statistics.
+          })
+          .catch(function (err) {
+            delete deleting[key];
+            console.error("Booking deletion failed:", err && err.code ? err.code : err);
+            showToast("Failed to cancel booking. Please try again.", true);
+            render(); // restore the button state
+          });
+      });
 
       searchEl.addEventListener("input", render);
       sortEl.addEventListener("change", render);
