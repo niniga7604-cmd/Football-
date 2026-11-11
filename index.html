@@ -247,6 +247,30 @@
       color: var(--lime);
     }
 
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 22px;
+      padding: 14px 16px;
+      background: var(--bg-input);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius);
+    }
+
+    .price-row span {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .price-row strong {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--lime);
+    }
+
     .cta {
       display: block;
       width: 100%;
@@ -362,8 +386,22 @@
           <p class="slot-msg" id="slot-msg" role="status" aria-live="polite"></p>
         </div>
 
-        <button type="submit" class="cta" id="pay-btn">Pay ₹500 Advance &amp; Book Slot</button>
-        <p class="note">₹500 advance payment required to reserve your slot.</p>
+        <div class="field">
+          <label for="duration">Duration</label>
+          <select id="duration" name="duration" required>
+            <option value="1" selected>1 Hour</option>
+            <option value="2">2 Hours</option>
+            <option value="3">3 Hours</option>
+          </select>
+        </div>
+
+        <div class="price-row" aria-live="polite">
+          <span>Total Amount</span>
+          <strong id="price-total">₹500</strong>
+        </div>
+
+        <button type="submit" class="cta" id="pay-btn">Pay ₹500 &amp; Book Slot</button>
+        <p class="note" id="pay-note">₹500 payment required to reserve your slot.</p>
 
       </form>
     </section>
@@ -455,7 +493,34 @@
 
       // Razorpay TEST Key ID only. Never put the Key Secret in frontend code.
       var RAZORPAY_KEY_ID = "rzp_test_TyPqbXmV5yrlSJ";
-      var AMOUNT_PAISE = "50000"; // ₹500
+
+      // ---- Dynamic pricing: one authoritative calculation ----
+      var PRICE_PER_HOUR = 500;            // INR
+      var ALLOWED_DURATIONS = [1, 2, 3];   // hours
+
+      // Returns {hours, amountInr, amountPaise} or null if the duration is not allowed
+      function getBookingPrice() {
+        var durationField = document.getElementById("duration");
+        var hours = durationField ? Number(durationField.value) : NaN;
+        if (!Number.isInteger(hours) || ALLOWED_DURATIONS.indexOf(hours) === -1) { return null; }
+        var amountInr = hours * PRICE_PER_HOUR;
+        return { hours: hours, amountInr: amountInr, amountPaise: amountInr * 100 };
+      }
+
+      function updatePricingUI() {
+        var price = getBookingPrice();
+        var totalEl = document.getElementById("price-total");
+        var noteEl = document.getElementById("pay-note");
+        var btn = document.getElementById("pay-btn");
+        if (!price) {
+          if (totalEl) { totalEl.textContent = "-"; }
+          return;
+        }
+        var label = "\u20B9" + price.amountInr;
+        if (totalEl) { totalEl.textContent = label; }
+        if (btn) { btn.textContent = "Pay " + label + " & Book Slot"; }
+        if (noteEl) { noteEl.textContent = label + " payment required to reserve your slot."; }
+      }
 
       var form = document.getElementById("booking-form");
       var teamEl = document.getElementById("team");
@@ -561,6 +626,11 @@
         setTimeout(checkAvailability, 0);
       });
 
+      var durationEl = document.getElementById("duration");
+      if (durationEl) { durationEl.addEventListener("change", updatePricingUI); }
+      form.addEventListener("reset", function () { setTimeout(updatePricingUI, 0); });
+      updatePricingUI();
+
       form.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -595,15 +665,24 @@
 
         var slotLabel = slotEl.options[slotEl.selectedIndex].text;
 
+        // Capture duration and amount at the moment checkout starts (fixed for this transaction)
+        var price = getBookingPrice();
+        if (!price || price.amountInr <= 0) {
+          alert("Please select a valid duration.");
+          return;
+        }
+        var durationHours = price.hours;
+        var totalInr = price.amountInr;
+
         // Step 3: open Razorpay Checkout
         var options = {
           key: RAZORPAY_KEY_ID,
-          amount: AMOUNT_PAISE,
+          amount: String(price.amountPaise),
           currency: "INR",
           name: "ProKick Box Cricket Turf",
-          description: "₹500 Advance Turf Booking",
+          description: "₹" + totalInr + " Turf Booking (" + durationHours + (durationHours === 1 ? " Hour)" : " Hours)"),
           prefill: { contact: phone },
-          notes: { team: team, date: date, slot: slotLabel },
+          notes: { team: team, date: date, slot: slotLabel, duration: durationHours + "h" },
           theme: { color: "#8fd11a" },
 
           // Payment succeeded in the browser: save the booking to Firebase
@@ -617,7 +696,10 @@
               date: date,
               timeSlot: slotLabel,
               paymentId: paymentId,
-              amountPaid: 500,
+              duration: durationHours,
+              totalAmount: totalInr,
+              amountPaid: totalInr,
+              paymentStatus: "paid_unverified", // browser callback only; verify server-side before trusting
               currency: "INR",
               createdAt: new Date().toISOString()
             };
