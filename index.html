@@ -473,8 +473,17 @@
     @media (max-width: 480px) {
       .hero h2 { font-size: 32px; }
       .slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .slot { padding: 11px 12px; }
-      .slot-time { font-size: 13px; }
+      .slot {
+        padding: 10px 8px;
+        align-items: flex-start;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .slot-time {
+        font-size: clamp(10.5px, 3vw, 12px);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+      }
     }
 
     @media (max-width: 360px) {
